@@ -6,7 +6,6 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
 }
 
 datasource db {
@@ -14,37 +13,54 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id            String    @id @default(cuid())
+  email         String?
+  password      String?
+  emailVerified DateTime?
+  createdAt     DateTime  @default(now())
+  updateedAt    DateTime  @updatedAt
+
+  sessions Session[]
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+  expires      DateTime
+}
+
 model Category {
-  id Int @id @default(autoincrement())
+  id     Int    @id @default(autoincrement())
   tittle String
-  item Item []
+  item   Item[]
 }
 
 model Item {
-  id Int @id @default(autoincrement())
-  name String
-  price Float
-  categoryId Int 
-  category Category @relation(fields: [categoryId], references: [id])
+  id           Int           @id @default(autoincrement())
+  name         String
+  price        Float
+  categoryId   Int
+  category     Category?     @relation(fields: [categoryId], references: [id])
   currentstock CurrentStock?
-  
 }
 
 model CurrentStock {
-  id Int @id
-  stock Int
-  currentId Int @unique
-  item Item @relation(fields: [currentId], references: [id])
+  id        Int  @id @default(autoincrement())
+  stock     Int
+  currentId Int  @unique
+  item      Item @relation(fields: [currentId], references: [id])
 }
 
-model Supplier{
-  id Int @id @default(autoincrement())
+model Supplier {
+  id   Int    @id @default(autoincrement())
   name String
+}
 
-} 
-
-model Status{
-  id Int @id @default(autoincrement())
-  name String
+model Status {
+  id          Int     @id @default(autoincrement())
+  name        String
   statusStock Boolean
 }
