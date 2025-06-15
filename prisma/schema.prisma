@@ -14,13 +14,15 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  email         String?
-  password      String?
-  emailVerified DateTime?
-  createdAt     DateTime  @default(now())
-  updateedAt    DateTime  @updatedAt
-
+  id                String    @id @default(cuid())
+  name              String?
+  email             String?
+  password          String?
+  emailVerified     DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  resetToken        String?
+  resetTokenExpired DateTime?
   sessions Session[]
 }
 
@@ -29,7 +31,7 @@ model Session {
   sessionToken String   @unique
   userId       String
   user         User     @relation(fields: [userId], references: [id])
-  expires      DateTime
+  expires      DateTime?
 }
 
 model Category {

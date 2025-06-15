@@ -11,6 +11,7 @@ import {
   AlertTriangle,
   ShoppingCart,
   Calendar,
+  Icon,
 } from "lucide-react"
 
 import {
@@ -77,6 +78,11 @@ const quickActions = [
     url: "#",
     icon: Settings,
   },
+  // {
+  //   title:"Logout",
+  //   url: "#",
+  //   Icon: Logout
+  // },
 ]
 
 export function AppSidebar() {
