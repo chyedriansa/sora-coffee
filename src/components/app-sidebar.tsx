@@ -1,4 +1,5 @@
 "use client"
+import { useRouter } from "next/router"
 
 import {
   Coffee,
@@ -78,12 +79,28 @@ const quickActions = [
     url: "#",
     icon: Settings,
   },
+
+  {
+    title: "Manage Users",
+    url: "#",
+    icon : Users,
+  },
   // {
-  //   title:"Logout",
+  //   title: "logout",
   //   url: "#",
-  //   Icon: Logout
+  //   icon: Icon,
   // },
-]
+];
+
+export default function LogoutButton() {
+  const router = useRouter();
+
+
+  const handleLogout = ()  =>{
+    localStorage.remoteItem("token");
+    router.push("/")
+  }
+}
 
 export function AppSidebar() {
   return (
@@ -97,7 +114,7 @@ export function AppSidebar() {
                   <Coffee className="size-4" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">Sora COffee</span>
+                  <span className="truncate font-semibold">Sora Coffee</span>
                   <span className="truncate text-xs">Stock Opname</span>
                 </div>
               </a>
@@ -153,7 +170,7 @@ export function AppSidebar() {
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-semibold">Admin User</span>
-                <span className="truncate text-xs">admin@brewbean.com</span>
+                <span className="truncate text-xs">soracoffeebdg@gmail.com</span>
               </div>
             </SidebarMenuButton>
           </SidebarMenuItem>

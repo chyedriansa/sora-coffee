@@ -1,6 +1,5 @@
 "use client"
-
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Coffee, Package, TrendingUp, AlertTriangle, Search, Plus, Edit, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -10,127 +9,125 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { AppSidebar } from "@/components/app-sidebar"
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
+import { Item } from "@radix-ui/react-dropdown-menu"
 
-// Sample inventory data
-const inventoryData = [
-  {
-    id: 1,
-    name: "Arabica Coffee Beans",
-    category: "Coffee Beans",
-    currentStock: 25,
-    minStock: 10,
-    maxStock: 100,
-    unit: "kg",
-    price: 45000,
-    supplier: "Local Farm Co.",
-    lastUpdated: "2024-01-15",
-  },
-  {
-    id: 2,
-    name: "Robusta Coffee Beans",
-    category: "Coffee Beans",
-    currentStock: 8,
-    minStock: 15,
-    maxStock: 80,
-    unit: "kg",
-    price: 35000,
-    supplier: "Mountain Coffee",
-    lastUpdated: "2024-01-14",
-  },
-  {
-    id: 3,
-    name: "Whole Milk",
-    category: "Dairy",
-    currentStock: 12,
-    minStock: 5,
-    maxStock: 30,
-    unit: "liters",
-    price: 8000,
-    supplier: "Fresh Dairy Ltd.",
-    lastUpdated: "2024-01-16",
-  },
-  {
-    id: 4,
-    name: "Sugar",
-    category: "Sweeteners",
-    currentStock: 15,
-    minStock: 5,
-    maxStock: 50,
-    unit: "kg",
-    price: 12000,
-    supplier: "Sweet Supply Co.",
-    lastUpdated: "2024-01-15",
-  },
-  {
-    id: 5,
-    name: "Paper Cups (12oz)",
-    category: "Packaging",
-    currentStock: 200,
-    minStock: 100,
-    maxStock: 1000,
-    unit: "pieces",
-    price: 150,
-    supplier: "Pack Solutions",
-    lastUpdated: "2024-01-16",
-  },
-  {
-    id: 6,
-    name: "Croissants",
-    category: "Pastries",
-    currentStock: 24,
-    minStock: 10,
-    maxStock: 50,
-    unit: "pieces",
-    price: 5000,
-    supplier: "Bakery Fresh",
-    lastUpdated: "2024-01-16",
-  },
-  {
-    id: 7,
-    name: "Espresso Machine Filters",
-    category: "Equipment",
-    currentStock: 5,
-    minStock: 10,
-    maxStock: 30,
-    unit: "pieces",
-    price: 25000,
-    supplier: "Coffee Tech",
-    lastUpdated: "2024-01-10",
-  },
-]
+//inventory data
 
-function getStockStatus(current: number, min: number, max: number) {
-  if (current <= min) return { status: "Low Stock", variant: "destructive" as const }
-  if (current >= max * 0.8) return { status: "High Stock", variant: "secondary" as const }
-  return { status: "Normal", variant: "default" as const }
-}
-
-function formatCurrency(amount: number) {
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    minimumFractionDigits: 0,
-  }).format(amount)
+type InventoryItem = {
+  id?: string | number
+  name: string
+  category?: { title: string }
+  categoryTitle?: string
+  supplier?: { name: string }
+  supplierName?: string
+  currentStock?: number
+  minStock?: number
+  maxStock?: number
+  unit?: string
+  price?: number
+  lastUpdated?: string
 }
 
 export default function StockOpnameDashboard() {
+  const [inventoryData, setInventoryData] = useState<InventoryItem[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("All")
+  const [showAddForm, setShowAddForm] = useState(false)
+  const [newItem, setNewItem] = useState({
+    name: "",
+    categoryTitle: "",
+    supplierName: "",
+    currentStock: "",
+    minStock: "",
+    maxStock: "",
+    unit: "",
+    price: "",
+  })
 
-  const categories = ["All", ...Array.from(new Set(inventoryData.map((item) => item.category)))]
+  // Derive categories from inventoryData, always include "All"
+  const categories = ["All", ...Array.from(new Set(inventoryData.map(item => item.category?.title || item.categoryTitle).filter(Boolean)))]
+
+  useEffect(() => {
+    // Fetch inventory data from API
+    fetch("/api/inventory")
+      .then((response) => response.json())
+      .then((data) => {
+        setInventoryData(data)
+      })
+  }, [])
 
   const filteredData = inventoryData.filter((item) => {
     const matchesSearch =
       item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.supplier.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesCategory = selectedCategory === "All" || item.category === selectedCategory
+      (item.category?.title || item.categoryTitle || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (item.supplier?.name || item.supplierName || "").toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesCategory = selectedCategory === "All" || (item.category?.title || item.categoryTitle) === selectedCategory
     return matchesSearch && matchesCategory
   })
-
   const totalItems = inventoryData.length
-  const lowStockItems = inventoryData.filter((item) => item.currentStock <= item.minStock).length
-  const totalValue = inventoryData.reduce((sum, item) => sum + item.currentStock * item.price, 0)
+  const lowStockItems = inventoryData.filter((item) => (item.currentStock || 0) <= (item.minStock || 0)).length
+  const totalValue = inventoryData.reduce((sum, item) => sum + (item.currentStock || 0) * (item.price || 0), 0)
+
+  const handleAddItem = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const res = await fetch("/api/inventory", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: newItem.name,
+        categoryTitle: newItem.categoryTitle,
+        supplierName: newItem.supplierName,
+        currentStock: Number(newItem.currentStock),
+        minStock: Number(newItem.minStock),
+        maxStock: Number(newItem.maxStock),
+        unit: newItem.unit,
+        price: Number(newItem.price),
+      }),
+    })
+    if (res.ok) {
+      const added = await res.json()
+      setInventoryData([...inventoryData, added])
+      setShowAddForm(false)
+      setNewItem({
+        name: "",
+        categoryTitle: "",
+        supplierName: "",
+        currentStock: "",
+        minStock: "",
+        maxStock: "",
+        unit: "",
+        price: "",
+      })
+    }
+  }
+
+  function formatCurrency(value: number): React.ReactNode {
+    return value.toLocaleString("en-US", {
+      style: "currency",
+      currency: "IDR",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })
+  }
+
+  // Helper to determine stock status
+  function getStockStatus(
+    currentStock?: number,
+    minStock?: number,
+    maxStock?: number
+  ): { status: string; variant: "secondary" | "destructive" | "default" | "outline" | null | undefined } {
+    if (currentStock === undefined || minStock === undefined || maxStock === undefined) {
+      return { status: "Unknown", variant: "secondary" }
+    }
+    if (currentStock <= minStock) {
+      return { status: "Low", variant: "destructive" }
+    }
+    if (currentStock >= maxStock) {
+      // Use a valid variant, e.g., "default" for "Full"
+      return { status: "Full", variant: "default" }
+    }
+    return { status: "Normal", variant: "default" }
+  }
 
   return (
     <SidebarProvider>
@@ -215,16 +212,74 @@ export default function StockOpnameDashboard() {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent>
                     {categories.map((category) => (
-                      <DropdownMenuItem key={category} onClick={() => setSelectedCategory(category)}>
+                      <DropdownMenuItem key={category ?? "Unknown"} onClick={() => setSelectedCategory(category ?? "")}>
                         {category}
                       </DropdownMenuItem>
                     ))}
                   </DropdownMenuContent>
                 </DropdownMenu>
-                <Button>
+                <Button onClick={() => setShowAddForm(true)}>
                   <Plus className="mr-2 h-4 w-4" />
                   Add Item
                 </Button>
+                {showAddForm && (
+                  <form onSubmit={handleAddItem} className="mb-6 flex gap-2 flex-wrap">
+                    <input
+                      placeholder="Item Name"
+                      value={newItem.name}
+                      onChange={e => setNewItem({ ...newItem, name: e.target.value })}
+                      required
+                    />
+                    <input
+                      placeholder="Category"
+                      value={newItem.categoryTitle}
+                      onChange={e => setNewItem({ ...newItem, categoryTitle: e.target.value })}
+                      required
+                    />
+                    <input
+                      placeholder="Supplier"
+                      value={newItem.supplierName}
+                      onChange={e => setNewItem({ ...newItem, supplierName: e.target.value })}
+                      required
+                    />
+                    <input
+                      placeholder="Current Stock"
+                      type="number"
+                      value={newItem.currentStock}
+                      onChange={e => setNewItem({ ...newItem, currentStock: e.target.value })}
+                      required
+                    />
+                    <input
+                      placeholder="Min Stock"
+                      type="number"
+                      value={newItem.minStock}
+                      onChange={e => setNewItem({ ...newItem, minStock: e.target.value })}
+                      required
+                    />
+                    <input
+                      placeholder="Max Stock"
+                      type="number"
+                      value={newItem.maxStock}
+                      onChange={e => setNewItem({ ...newItem, maxStock: e.target.value })}
+                      required
+                    />
+                    <input
+                      placeholder="Unit"
+                      value={newItem.unit}
+                      onChange={e => setNewItem({ ...newItem, unit: e.target.value })}
+                      required
+                    />
+                    <input
+                      placeholder="Price"
+                      type="number"
+                      value={newItem.price}
+                      onChange={e => setNewItem({ ...newItem, price: e.target.value })}
+                      required
+                    />
+                    <button type="submit">Save</button>
+                    <button type="button" onClick={() => setShowAddForm(false)}>Cancel</button>
+                  </form>
+                )}
               </div>
 
               {/* Inventory Table */}
@@ -249,7 +304,7 @@ export default function StockOpnameDashboard() {
                       return (
                         <TableRow key={item.id}>
                           <TableCell className="font-medium">{item.name}</TableCell>
-                          <TableCell>{item.category}</TableCell>
+                          <TableCell>{item.category?.title || item.categoryTitle}</TableCell>
                           <TableCell>
                             <span className="font-medium">{item.currentStock}</span> {item.unit}
                           </TableCell>
@@ -259,8 +314,8 @@ export default function StockOpnameDashboard() {
                           <TableCell>
                             <Badge variant={stockStatus.variant}>{stockStatus.status}</Badge>
                           </TableCell>
-                          <TableCell>{formatCurrency(item.price)}</TableCell>
-                          <TableCell>{item.supplier}</TableCell>
+                          <TableCell>{formatCurrency(item.price ?? 0)}</TableCell>
+                          <TableCell>{item.supplier?.name || item.supplierName}</TableCell>
                           <TableCell className="text-sm text-muted-foreground">{item.lastUpdated}</TableCell>
                           <TableCell className="text-right">
                             <DropdownMenu>
