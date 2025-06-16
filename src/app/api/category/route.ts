@@ -12,4 +12,7 @@ export async function POST (request: NextRequest){
         const body = await request.json();
         const {title} =  body;
     }
+    catch (error){
+        return NextResponse.json({ error: "internal Server Error" }, { status: 500 });
+    }
 }
