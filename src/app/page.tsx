@@ -37,7 +37,7 @@ export default function AuthForm() {
       })
       const data = await res.json()
       if (res.ok) {
-        router.push("/pages/inventory")
+        router.push("/inventory")
       } else {
         setAlert({
           type: "error",

@@ -7,9 +7,10 @@ import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Dialog, DialogTrigger, DialogContent, DialogHeader } from "@/components/ui/dialog"
+import { DialogDescription, DialogTitle } from "@radix-ui/react-dialog"
 import { AppSidebar } from "@/components/app-sidebar"
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
-import { Item } from "@radix-ui/react-dropdown-menu"
 
 //inventory data
 
@@ -33,6 +34,8 @@ export default function StockOpnameDashboard() {
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("All")
   const [showAddForm, setShowAddForm] = useState(false)
+  type Supplier = { id: string | number; name: string }
+  const [supplier, setSupplier] = useState<Supplier[]>([])
   const [newItem, setNewItem] = useState({
     name: "",
     categoryTitle: "",
@@ -55,6 +58,16 @@ export default function StockOpnameDashboard() {
         setInventoryData(data)
       })
   }, [])
+
+  useEffect(() => {
+    if (showAddForm) {
+      fetch("/api/suppliers")
+        .then(response => response.json())
+        .then(data => setSupplier(data))
+        .catch(() => setSupplier([]))
+    }
+  }, [showAddForm]);
+
 
   const filteredData = inventoryData.filter((item) => {
     const matchesSearch =
@@ -218,68 +231,98 @@ export default function StockOpnameDashboard() {
                     ))}
                   </DropdownMenuContent>
                 </DropdownMenu>
-                <Button onClick={() => setShowAddForm(true)}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add Item
-                </Button>
-                {showAddForm && (
-                  <form onSubmit={handleAddItem} className="mb-6 flex gap-2 flex-wrap">
-                    <input
-                      placeholder="Item Name"
-                      value={newItem.name}
-                      onChange={e => setNewItem({ ...newItem, name: e.target.value })}
-                      required
-                    />
-                    <input
-                      placeholder="Category"
-                      value={newItem.categoryTitle}
-                      onChange={e => setNewItem({ ...newItem, categoryTitle: e.target.value })}
-                      required
-                    />
-                    <input
-                      placeholder="Supplier"
-                      value={newItem.supplierName}
-                      onChange={e => setNewItem({ ...newItem, supplierName: e.target.value })}
-                      required
-                    />
-                    <input
-                      placeholder="Current Stock"
-                      type="number"
-                      value={newItem.currentStock}
-                      onChange={e => setNewItem({ ...newItem, currentStock: e.target.value })}
-                      required
-                    />
-                    <input
-                      placeholder="Min Stock"
-                      type="number"
-                      value={newItem.minStock}
-                      onChange={e => setNewItem({ ...newItem, minStock: e.target.value })}
-                      required
-                    />
-                    <input
-                      placeholder="Max Stock"
-                      type="number"
-                      value={newItem.maxStock}
-                      onChange={e => setNewItem({ ...newItem, maxStock: e.target.value })}
-                      required
-                    />
-                    <input
-                      placeholder="Unit"
-                      value={newItem.unit}
-                      onChange={e => setNewItem({ ...newItem, unit: e.target.value })}
-                      required
-                    />
-                    <input
-                      placeholder="Price"
-                      type="number"
-                      value={newItem.price}
-                      onChange={e => setNewItem({ ...newItem, price: e.target.value })}
-                      required
-                    />
-                    <button type="submit">Save</button>
-                    <button type="button" onClick={() => setShowAddForm(false)}>Cancel</button>
-                  </form>
-                )}
+                <div>
+
+                  <Dialog open={showAddForm} onOpenChange={setShowAddForm}>
+                    <DialogTrigger asChild>
+
+                      <Button onClick={() => setShowAddForm(true)}>
+                        <Plus className="mr-2 h-4 w-4" />
+                        Add Item
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle >
+                          Add New Inventory
+                        </DialogTitle>
+                      </DialogHeader>
+                      <DialogDescription></DialogDescription>
+                      {showAddForm && (
+                        <form onSubmit={handleAddItem} className="mb-6 flex gap-2 flex-wrap">
+                          <input
+                            placeholder="Item Name"
+                            value={newItem.name}
+                            onChange={e => setNewItem({ ...newItem, name: e.target.value })}
+                            required
+                          />
+                          <input
+                            placeholder="Category"
+                            value={newItem.categoryTitle}
+                            onChange={e => setNewItem({ ...newItem, categoryTitle: e.target.value })}
+                            required
+                          />
+                          <label>
+                            <select
+                              value={newItem.supplierName}
+                              onChange={e => setNewItem({ ...newItem, supplierName: e.target.value })}
+                              required
+                            >
+                              <option value="" disabled>Select Supplier</option>
+                              {supplier.map(supplier => (
+                                <option key={supplier.id} value={supplier.name}>
+                                  {supplier.name}
+                                </option>
+                              ))}
+                            </select>
+                          </label>
+                          <input
+                            placeholder="Current Stock"
+                            type="number"
+                            value={newItem.currentStock}
+                            onChange={e => setNewItem({ ...newItem, currentStock: e.target.value })}
+                            required
+                          />
+                          <input
+                            placeholder="Min Stock"
+                            type="number"
+                            value={newItem.minStock}
+                            onChange={e => setNewItem({ ...newItem, minStock: e.target.value })}
+                            required
+                          />
+                          <input
+                            placeholder="Max Stock"
+                            type="number"
+                            value={newItem.maxStock}
+                            onChange={e => setNewItem({ ...newItem, maxStock: e.target.value })}
+                            required
+                          />
+                          <input
+                            placeholder="Unit"
+                            value={newItem.unit}
+                            onChange={e => setNewItem({ ...newItem, unit: e.target.value })}
+                            required
+                          />
+                          <input
+                            placeholder="Price"
+                            type="number"
+                            value={newItem.price}
+                            onChange={e => setNewItem({ ...newItem, price: e.target.value })}
+                            required
+                          />
+                          <div className="flex justify-end gap-2">
+                            <Button variant="outline" type="button" onClick={() => setShowAddForm(false)}>
+                              Cancel
+                            </Button>
+                            <Button onClick={handleAddItem} className="bg-black hover:bg-gray-800">
+                              Add Item
+                            </Button>
+                          </div>
+                        </form>
+                      )}
+                    </DialogContent>
+                  </Dialog>
+                </div>
               </div>
 
               {/* Inventory Table */}
