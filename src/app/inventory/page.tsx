@@ -38,6 +38,8 @@ export default function StockOpnameDashboard() {
   type Supplier = { id: string | number; name: string }
   const [category, setCategory] = useState<category[]>([])
   type category = { id: string | number; title: string }
+  const [unit, setUnit] = useState<string[]>([])
+  type unit = { id: string | number; title: string }
   const [newItem, setNewItem] = useState({
     name: "",
     categoryTitle: "",
@@ -48,6 +50,7 @@ export default function StockOpnameDashboard() {
     unit: "",
     price: "",
   })
+
 
   // Derive categories from inventoryData, always include "All"
   const categories = ["All", ...Array.from(new Set(inventoryData.map(item => item.category?.title || item.categoryTitle).filter(Boolean)))]
@@ -69,6 +72,7 @@ export default function StockOpnameDashboard() {
         .catch(() => setSupplier([]))
     }
   }, [showAddForm]);
+
   useEffect(() => {
     if (showAddForm) {
       fetch("/api/category")
@@ -78,6 +82,18 @@ export default function StockOpnameDashboard() {
     }
   }, [showAddForm]);
 
+  useEffect(() => {
+    if (showAddForm) {
+      fetch("/api/unit")
+        .then(response => response.json())
+        .then(data => {
+          // Extract only the unit strings and remove duplicates
+          const uniqueUnits = Array.from(new Set(data.map((item: { unit: string }) => item.unit).filter(Boolean))) as string[];
+          setUnit(uniqueUnits);
+        })
+        .catch(() => setUnit([]));
+    }
+  }, [showAddForm]);
 
   const filteredData = inventoryData.filter((item) => {
     const matchesSearch =
@@ -151,6 +167,20 @@ export default function StockOpnameDashboard() {
     }
     return { status: "Normal", variant: "default" }
   }
+
+  const handleDeleteItem = async (id: string | number) => {
+    if (!window.confirm("Are you sure you want to delete this item?")) return;
+    const res = await fetch("/api/inventory", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+    if (res.ok) {
+      setInventoryData(inventoryData.filter(item => item.id !== id));
+    } else {
+      console.error("Failed to delete item");
+    }
+  };
 
   return (
     <SidebarProvider>
@@ -262,7 +292,7 @@ export default function StockOpnameDashboard() {
                           onSubmit={handleAddItem}
                           className="mb-6 w-full flex justify-center max-w-2xl mx-auto bg-gray-900 rounded-lg shadow-lg p-6 flex flex-col gap-4"
                         >
-                          <h2 className="text-xl font-bold text-amber-600 mb-2">Add New Inventory Item</h2>
+                          <h2 className="text-xl font-bold text-amber-50  mb-2 w-full flex justify-center">Add New Inventory Item</h2>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                               <label className="block text-gray-300 mb-1">Item Name</label>
@@ -309,13 +339,20 @@ export default function StockOpnameDashboard() {
                             </div>
                             <div>
                               <label className="block text-gray-300 mb-1">Unit</label>
-                              <Input
-                                placeholder="Unit"
+                              <select
                                 value={newItem.unit}
                                 onChange={e => setNewItem({ ...newItem, unit: e.target.value })}
                                 required
-                                className="bg-gray-800 border-gray-700 text-white"
-                              />
+                                className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white">
+
+                                <option value="">Select Unit</option>
+                                {unit.map(u => (
+                                  <option key={u} value={u}>
+                                    {u}
+                                  </option>
+                                ))}
+                              </select>
+
                             </div>
                             <div>
                               <label className="block text-gray-300 mb-1">Current Stock</label>
@@ -367,13 +404,14 @@ export default function StockOpnameDashboard() {
                               variant="outline"
                               type="button"
                               onClick={() => setShowAddForm(false)}
-                              className="bg-amber- hover:bg-amber-200 text-white font-semibold"
+                              className="bg-amber hover:bg-white text-white font-semibold"
                             >
                               Cancel
                             </Button>
                             <Button
+                              variant="outline"
                               type="submit"
-                              className="bg-amber-600 hover:bg-amber-700 text-white font-semibold"
+                              className="bg-amber  hover:bg-amber-700 text-white font-semibold"
                             >
                               Add Item
                             </Button>
@@ -436,7 +474,8 @@ export default function StockOpnameDashboard() {
                                   <Package className="mr-2 h-4 w-4" />
                                   Update Stock
                                 </DropdownMenuItem>
-                                <DropdownMenuItem className="text-destructive">
+                                <DropdownMenuItem className="text-destructive"
+                                  onClick={() => handleDeleteItem(item.id!)}>
                                   <Trash2 className="mr-2 h-4 w-4" />
                                   Delete Item
                                 </DropdownMenuItem>

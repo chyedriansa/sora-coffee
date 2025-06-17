@@ -39,10 +39,10 @@ model Item {
   name         String
   categoryId   String
   category     Category    @relation(fields: [categoryId], references: [id])
-  currentStock Int         //stock now
+  currentStock Int         
   minStock     Int
   maxStock     Int
-  unit         String
+  unit         String      
   price        Int
   supplierId   String
   supplier     Supplier    @relation(fields: [supplierId], references: [id])

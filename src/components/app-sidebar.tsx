@@ -1,24 +1,11 @@
 "use client"
-import { useRouter } from "next/router"
 
-import {
-  Coffee,
-  Package,
-  BarChart3,
-  Settings,
-  Users,
-  FileText,
-  TrendingUp,
-  AlertTriangle,
-  ShoppingCart,
-  Calendar,
-  Icon,
-} from "lucide-react"
+import type * as React from "react"
+import { BarChart3, Package, ShoppingCart, Users, Calendar, AlertTriangle, Clock, Settings, Coffee } from "lucide-react"
 
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -26,111 +13,84 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarRail,
 } from "@/components/ui/sidebar"
 
-// Menu items for coffee shop management
-const menuItems = [
-  {
-    title: "Dashboard",
-    url: "#",
-    icon: BarChart3,
-  },
-  {
-    title: "Inventory",
-    url: "#",
-    icon: Package,
-    isActive: true,
-  },
-  {
-    title: "Sales",
-    url: "/sales",
-    icon: TrendingUp,
-  },
-  {
-    title: "Orders",
-    url: "#",
-    icon: ShoppingCart,
-  },
-  {
-    title: "Suppliers",
-    url: "#",
-    icon: Users,
-  },
-  {
-    title: "Reports",
-    url: "#",
-    icon: FileText,
-  },
-]
-
-const quickActions = [
-  {
-    title: "Low Stock Alerts",
-    url: "#",
-    icon: AlertTriangle,
-  },
-  {
-    title: "Daily Schedule",
-    url: "#",
-    icon: Calendar,
-  },
-  {
-    title: "Settings",
-    url: "#",
-    icon: Settings,
-  },
-
-  {
-    title: "Manage Users",
-    url: "#",
-    icon : Users,
-  },
-  // {
-  //   title: "logout",
-  //   url: "#",
-  //   icon: Icon,
-  // },
-];
-
-export default function LogoutButton() {
-  const router = useRouter();
-
-
-  const handleLogout = ()  =>{
-    localStorage.remoteItem("token");
-    router.push("/")
-  }
+// Menu items data
+const data = {
+  mainMenu: [
+    {
+      title: "Dashboard",
+      url: "/dashboard",
+      icon: BarChart3,
+    },
+    {
+      title: "Inventory",
+      url: "/inventory",
+      icon: Package,
+    },
+    {
+      title: "Sales",
+      url: "#",
+      icon: ShoppingCart,
+    },
+    {
+      title: "Orders",
+      url: "#",
+      icon: ShoppingCart,
+    },
+    {
+      title: "Suppliers",
+      url: "#",
+      icon: Users,
+    },
+    {
+      title: "Reports",
+      url: "#",
+      icon: Calendar,
+    },
+  ],
+  quickActions: [
+    {
+      title: "Low Stock Alerts",
+      url: "#",
+      icon: AlertTriangle,
+    },
+    {
+      title: "Daily Schedule",
+      url: "#",
+      icon: Clock,
+    },
+    {
+      title: "Settings",
+      url: "#",
+      icon: Settings,
+    },
+  ],
 }
 
-export function AppSidebar() {
+export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
-    <Sidebar>
+    <Sidebar {...props}>
       <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild>
-              <a href="#">
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                  <Coffee className="size-4" />
-                </div>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">Sora Coffee</span>
-                  <span className="truncate text-xs">Stock Opname</span>
-                </div>
-              </a>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+        <div className="flex items-center gap-2 px-4 py-2">
+          <div className="w-8 h-8 bg-accent-foreground rounded-lg flex items-center justify-center">
+            <Coffee className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h2 className="font-semibold text-foreground">Sora Coffee</h2>
+            <p className="text-sm text-muted-foreground">Stock Opname</p>
+          </div>
+        </div>
       </SidebarHeader>
-
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>Main Menu</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {menuItems.map((item) => (
+              {data.mainMenu.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={item.isActive}>
+                  <SidebarMenuButton asChild>
                     <a href={item.url}>
                       <item.icon />
                       <span>{item.title}</span>
@@ -141,12 +101,11 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-
         <SidebarGroup>
           <SidebarGroupLabel>Quick Actions</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {quickActions.map((item) => (
+              {data.quickActions.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <a href={item.url}>
@@ -160,22 +119,7 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-
-      <SidebarFooter>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton>
-              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-muted">
-                <Coffee className="size-4" />
-              </div>
-              <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-semibold">Admin User</span>
-                <span className="truncate text-xs">soracoffeebdg@gmail.com</span>
-              </div>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarFooter>
+      <SidebarRail />
     </Sidebar>
   )
 }

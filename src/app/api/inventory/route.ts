@@ -92,9 +92,33 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(item);
   } catch (error) {
     console.error("Error creating item:", error);
-          return NextResponse.json(
-            { error: "Internal server error" },
-            { status: 500 }
-          );
-        }
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const { id } = await request.json();
+    if (!id) {
+      return NextResponse.json({ error: "Item ID is required" }, { status: 400 });
     }
+    //delete the item
+    const deletedItem = await prisma.item.delete({
+      where: { id },
+      include: {
+        category: true,
+        supplier: true,
+      },
+    });
+    return NextResponse.json(deletedItem);
+  } catch (error) {
+    console.error("Error deleting item:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
