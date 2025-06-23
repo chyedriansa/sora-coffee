@@ -1,9 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { verify } from "jsonwebtoken";
+const JWT_SECRET = process.env.JWT_SECRET || "8c83eae5e44c1fa45054eb285885d4728cfe91b12a4632b318410d3042624fc2"
 
 // GET: Fetch all items with category and supplier info
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const authHeader = req.headers.get("authorization");
+  if (!authHeader) {
+    return NextResponse.json({ error: "No token" }, { status: 401 });
+  }
+  const token = authHeader.split(" ")[1];
   try {
+    const JWT_SECRET = process.env.JWT_SECRET as string;
+    if (!JWT_SECRET) {
+      return NextResponse.json({ error: "JWT secret not configured" }, { status: 500 });
+    }
+    const decoded = verify(token, JWT_SECRET);
     const items = await prisma.item.findMany({
       include: {
         category: true,
@@ -92,9 +104,33 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(item);
   } catch (error) {
     console.error("Error creating item:", error);
-          return NextResponse.json(
-            { error: "Internal server error" },
-            { status: 500 }
-          );
-        }
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const { id } = await request.json();
+    if (!id) {
+      return NextResponse.json({ error: "Item ID is required" }, { status: 400 });
     }
+    //delete the item
+    const deletedItem = await prisma.item.delete({
+      where: { id },
+      include: {
+        category: true,
+        supplier: true,
+      },
+    });
+    return NextResponse.json(deletedItem);
+  } catch (error) {
+    console.error("Error deleting item:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
