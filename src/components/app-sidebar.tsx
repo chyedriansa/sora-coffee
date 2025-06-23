@@ -1,7 +1,7 @@
 "use client"
 
 import type * as React from "react"
-import { BarChart3, Package, ShoppingCart, Users, Calendar, AlertTriangle, Clock, Settings, Coffee } from "lucide-react"
+import { BarChart3, Package, ShoppingCart, Users, Calendar, AlertTriangle, Clock, Settings, Coffee, LogOut } from "lucide-react"
 
 import {
   Sidebar,
@@ -117,8 +117,24 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               ))}
             </SidebarMenu>
           </SidebarGroupContent>
+
         </SidebarGroup>
       </SidebarContent>
+       <div className="p-4 border-t border-accent flex">
+        <button
+          className="flex items-center gap-2 text-red-600 hover:text-red-800 font-semibold"
+          onClick={() => {
+            if (typeof window !== "undefined") {
+              localStorage.removeItem("token");
+              localStorage.removeItem("user");
+              window.location.href = "/"; // Redirect to login page
+            }
+          }}
+        >
+          <LogOut className="w-4 h-4" />
+          Log Out
+        </button>
+      </div>
       <SidebarRail />
     </Sidebar>
   )

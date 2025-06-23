@@ -11,7 +11,6 @@ import {
     ShoppingCart,
     Users,
     Calendar,
-    Clock,
     Coffee,
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -109,6 +108,7 @@ const topProducts: TopProduct[] = [
     },
 ]
 
+
 export default function DashboardPage() {
     const [timeRange, setTimeRange] = useState("today")
 
@@ -125,6 +125,7 @@ export default function DashboardPage() {
         </header>
 
             {/* Main Content */}
+            
             <div className="flex-1 p-6">
                 <div className="mb-6">
                     <div className="flex items-center justify-between">

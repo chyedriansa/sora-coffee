@@ -1,5 +1,6 @@
 "use client"
 import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 import { Coffee, Package, TrendingUp, AlertTriangle, Search, Plus, Edit, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -30,16 +31,20 @@ type InventoryItem = {
 }
 
 export default function StockOpnameDashboard() {
-  const [inventoryData, setInventoryData] = useState<InventoryItem[]>([])
-  const [searchTerm, setSearchTerm] = useState("")
-  const [selectedCategory, setSelectedCategory] = useState("All")
-  const [showAddForm, setShowAddForm] = useState(false)
-  const [supplier, setSupplier] = useState<Supplier[]>([])
-  type Supplier = { id: string | number; name: string }
-  const [category, setCategory] = useState<category[]>([])
-  type category = { id: string | number; title: string }
-  const [unit, setUnit] = useState<string[]>([])
-  type unit = { id: string | number; title: string }
+  const router = useRouter();
+  const [checkingAuth, setCheckingAuth] = useState(true);
+  const [inventoryData, setInventoryData] = useState<InventoryItem[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [supplier, setSupplier] = useState<Supplier[]>([]);
+  type Supplier = { id: string | number; name: string };
+  const [category, setCategory] = useState<category[]>([]);
+  type category = { id: string | number; title: string };
+  const [unit, setUnit] = useState<string[]>([]);
+  const categories = ["All", ...Array.from(new Set(inventoryData.map(item => item.category?.title || item.categoryTitle).filter(Boolean)))];
+  type unit = { id: string | number; title: string };
   const [newItem, setNewItem] = useState({
     name: "",
     categoryTitle: "",
@@ -51,18 +56,33 @@ export default function StockOpnameDashboard() {
     price: "",
   })
 
-
-  // Derive categories from inventoryData, always include "All"
-  const categories = ["All", ...Array.from(new Set(inventoryData.map(item => item.category?.title || item.categoryTitle).filter(Boolean)))]
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        router.push("/"); // Redirect to login
+      } else {
+        setCheckingAuth(false); // User is logged in, show the page
+      }
+    }
+  }, [router]);
 
   useEffect(() => {
-    // Fetch inventory data from API
-    fetch("/api/inventory")
-      .then((response) => response.json())
-      .then((data) => {
-        setInventoryData(data)
+    if (!checkingAuth) {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+      fetch("/api/inventory", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       })
-  }, [])
+        .then((response) => response.json())
+        .then((data) => {
+          setInventoryData(Array.isArray(data) ? data : []);
+        })
+        .catch(() => setInventoryData([]));
+    }
+  }, [checkingAuth]);
 
   useEffect(() => {
     if (showAddForm) {
@@ -92,8 +112,18 @@ export default function StockOpnameDashboard() {
           setUnit(uniqueUnits);
         })
         .catch(() => setUnit([]));
+
+
     }
   }, [showAddForm]);
+
+  useEffect(() => {
+    setLoading(true);
+    const timer = setTimeout(() => setLoading(false), 1000);
+    return () => clearTimeout(timer);
+  }, []);
+
+
 
   const filteredData = inventoryData.filter((item) => {
     const matchesSearch =
@@ -182,7 +212,19 @@ export default function StockOpnameDashboard() {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500"></div>
+        <span className="ml-4 text-black font-semibold">Loading dashboard...</span>
+      </div>
+    );
+  }
+  if (checkingAuth) {
+    return null;
+  }
   return (
+
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>

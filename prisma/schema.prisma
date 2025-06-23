@@ -18,45 +18,47 @@ model User {
   name              String?
   email             String?
   password          String?
+  lastLogin         DateTime?
   emailVerified     DateTime?
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
   resetToken        String?
   resetTokenExpired DateTime?
+
   sessions Session[]
 }
 
 model Session {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique
+  id           String    @id @default(cuid())
+  sessionToken String    @unique
   userId       String
-  user         User     @relation(fields: [userId], references: [id])
+  user         User      @relation(fields: [userId], references: [id])
   expires      DateTime?
 }
 
 model Item {
-  id           String      @id @default(cuid())
+  id           String   @id @default(cuid())
   name         String
   categoryId   String
-  category     Category    @relation(fields: [categoryId], references: [id])
-  currentStock Int         
+  category     Category @relation(fields: [categoryId], references: [id])
+  currentStock Int
   minStock     Int
   maxStock     Int
-  unit         String      
+  unit         String
   price        Int
   supplierId   String
-  supplier     Supplier    @relation(fields: [supplierId], references: [id])
-  lastUpdated  DateTime    @updatedAt
+  supplier     Supplier @relation(fields: [supplierId], references: [id])
+  lastUpdated  DateTime @updatedAt
 }
 
 model Category {
-  id    String  @id @default(cuid())
-  title String  @unique
+  id    String @id @default(cuid())
+  title String @unique
   items Item[]
 }
 
 model Supplier {
-  id      String  @id @default(cuid())
-  name    String  @unique
-  items   Item[]
+  id    String @id @default(cuid())
+  name  String @unique
+  items Item[]
 }

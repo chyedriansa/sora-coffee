@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useEffect } from "react"
 
 export default function AuthForm() {
   const [showPassword, setShowPassword] = useState(false)
@@ -19,12 +20,13 @@ export default function AuthForm() {
     message: string
   } | null>(null)
   const router = useRouter()
-
   const handleSubmit = async (e: React.FormEvent, type: string) => {
     e.preventDefault()
     setAlert(null)
 
     const form = e.target as HTMLFormElement
+
+    
 
     if (type === "login") {
       const email = (form.elements.namedItem("login-email") as HTMLInputElement).value
@@ -37,7 +39,13 @@ export default function AuthForm() {
       })
       const data = await res.json()
       if (res.ok) {
-        router.push("/dashboard")
+        localStorage.setItem("token", data.token)
+        localStorage.setItem("user", JSON.stringify(data.user))
+        setAlert({
+          type: "success",
+          message: data.message || "Login Successful"
+        })
+        router.push("/inventory")
       } else {
         setAlert({
           type: "error",
