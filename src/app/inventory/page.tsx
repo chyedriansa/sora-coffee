@@ -12,6 +12,7 @@ import { Dialog, DialogTrigger, DialogContent, DialogHeader } from "@/components
 import { DialogDescription, DialogTitle } from "@radix-ui/react-dialog"
 import { AppSidebar } from "@/components/app-sidebar"
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
+import { Jwt } from "jsonwebtoken"
 
 //inventory data
 
@@ -38,6 +39,10 @@ export default function StockOpnameDashboard() {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [showAddForm, setShowAddForm] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showUpdateStockDialog, setShowUpdateStockDialog] = useState(false);
+  const [updateStockItem, setUpdateStockItem] = useState<InventoryItem | null>(null);
+  const [updateStockQty, setUpdateStockQty] = useState("");
+  const [updateType, setUpdateType] = useState<"increase" | "decrease">("increase");
   const [supplier, setSupplier] = useState<Supplier[]>([]);
   type Supplier = { id: string | number; name: string };
   const [category, setCategory] = useState<category[]>([]);
@@ -124,7 +129,6 @@ export default function StockOpnameDashboard() {
   }, []);
 
 
-
   const filteredData = inventoryData.filter((item) => {
     const matchesSearch =
       item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -137,6 +141,10 @@ export default function StockOpnameDashboard() {
   const lowStockItems = inventoryData.filter((item) => (item.currentStock || 0) <= (item.minStock || 0)).length
   const totalValue = inventoryData.reduce((sum, item) => sum + (item.currentStock || 0) * (item.price || 0), 0)
 
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value)
+  };
   const handleAddItem = async (e: React.FormEvent) => {
     e.preventDefault()
     const res = await fetch("/api/inventory", {
@@ -332,7 +340,7 @@ export default function StockOpnameDashboard() {
                       {showAddForm && (
                         <form
                           onSubmit={handleAddItem}
-                          className="mb-6 w-full flex justify-center max-w-2xl mx-auto bg-gray-900 rounded-lg shadow-lg p-6 flex flex-col gap-4"
+                          className="mb-6 w-full justify-center max-w-2xl mx-auto bg-gray-900 rounded-lg shadow-lg p-6 flex flex-col gap-4"
                         >
                           <h2 className="text-xl font-bold text-amber-50  mb-2 w-full flex justify-center">Add New Inventory Item</h2>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -462,6 +470,63 @@ export default function StockOpnameDashboard() {
                       )}
                     </DialogContent>
                   </Dialog>
+                  <Dialog open={showUpdateStockDialog} onOpenChange={setShowUpdateStockDialog}>
+                    <DialogContent className="flex flex-col gap-4 w-full justify-center max-w-2xl mx-auto bg-gray-900 rounded-lg shadow-lg p-6">
+                      <DialogHeader>
+                        <DialogTitle className="flex justify-center max-w-2xl mx-auto bg-gray-900 rounded-lg shadow-lg p-2 text-amber-100 font-semibold">Update Stock: {updateStockItem?.name}</DialogTitle>
+                      </DialogHeader>
+                      <form
+                        onSubmit={async (e) => {
+                          e.preventDefault();
+                          if (!updateStockItem) return;
+                          const res = await fetch("/api/inventory", {
+                            method: "PATCH",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                              id: updateStockItem.id,
+                              updateStockQty: Number(updateStockQty),
+                              updateType,
+                            }),
+                          });
+                          if (res.ok) {
+                            const updated = await res.json();
+                            setInventoryData((prev) =>
+                              prev.map((item) =>
+                                item.id === updated.id ? { ...item, currentStock: updated.currentStock } : item
+                              )
+                            );
+                            setShowUpdateStockDialog(false);
+                            setUpdateStockQty("");
+                          }
+                        }}
+                        className="flex flex-col gap-4 mb-6 w-full justify-center max-w-2xl mx-auto bg-gray-900 rounded-lg shadow-lg p-6"
+                      >
+                        <label className="grid grid-cols-1 md:grid-cols-2 gap-4 text-amber-100">
+                          <span>Type :</span>
+                          <select
+                            value={updateType}
+                            onChange={e => setUpdateType(e.target.value as "increase" | "decrease")}
+                            // className="ml-2 border rounded px-2 py-1"
+                          >
+                            <option className="bg-gray-900" value="increase">Stock In</option>
+                            <option className="bg-gray-900" value="decrease">Stock Out</option>
+                          </select>
+                        </label>
+                        <label className="grid grid-cols-1 md:grid-cols-2 gap-4 text-amber-100">
+                          Quantity :
+                          <Input
+                            type="number"
+                            min={1}
+                            value={updateStockQty}
+                            onChange={(e) => setUpdateStockQty(e.target.value)}
+                            required
+                          />
+                        </label>
+                        <Button
+                          className="justify-end-safe mb-6 w-30 bg-amber  hover:bg-amber-700 text-white font-semibold  " type="submit" variant={"outline"}>Update Stock</Button>
+                      </form>
+                    </DialogContent>
+                  </Dialog>
                 </div>
               </div>
 
@@ -503,16 +568,21 @@ export default function StockOpnameDashboard() {
                           <TableCell className="text-right">
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="sm">
+                                <Button className="hover:bg-gray-200"variant="ghost" size="sm">
                                   Actions
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
-                                <DropdownMenuItem>
-                                  <Edit className="mr-2 h-4 w-4" />
+                                <DropdownMenuItem className="text-blue-500">
+                                  <Edit className="mr-2 h-4 w-4 " />
                                   Edit Item
                                 </DropdownMenuItem>
-                                <DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => {
+                                  setUpdateStockItem(item);
+                                  setShowUpdateStockDialog(true);
+                                  setUpdateType("increase"); // default to increase
+                                }}
+                                  className="text-green-700">
                                   <Package className="mr-2 h-4 w-4" />
                                   Update Stock
                                 </DropdownMenuItem>
@@ -536,4 +606,8 @@ export default function StockOpnameDashboard() {
       </SidebarInset>
     </SidebarProvider>
   )
+}
+
+function setStockOutItem(item: InventoryItem) {
+  throw new Error("Function not implemented.")
 }

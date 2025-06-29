@@ -127,10 +127,48 @@ export async function DELETE(request: NextRequest) {
     });
     return NextResponse.json(deletedItem);
   } catch (error) {
-    console.error("Error deleting item:", error);
+    console.error("Error deleting item:", error); 
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
     );
+  }
+}
+export async function PATCH(request: NextRequest) {
+  try {
+    const body = await request.json();
+
+    // Handle update stock (increase or decrease)
+    if (body.updateStockQty !== undefined && body.id && body.updateType) {
+      const item = await prisma.item.findUnique({ where: { id: body.id } });
+      if (!item) {
+        return NextResponse.json({ error: "Item not found" }, { status: 404 });
+      }
+      const oldStock = item.currentStock || 0;
+      let newStock = oldStock;
+      if (body.updateType === "increase") {
+        newStock += Number(body.updateStockQty);
+      } else if (body.updateType === "decrease") {
+        newStock -= Number(body.updateStockQty);
+        if (newStock < 0) {
+          return NextResponse.json({ error: "Not enough stock" }, { status: 400 });
+        }
+      }
+      const updated = await prisma.item.update({
+        where: { id: body.id },
+        data: { currentStock: newStock },
+        include: { category: true, supplier: true },
+      });
+
+      // Optionally: Audit log here
+
+      return NextResponse.json(updated);
+    }
+
+    // ...existing update logic for full item update...
+    // (leave your existing code here)
+  } catch (error) {
+    console.error("Error updating item:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

@@ -1,8 +1,18 @@
 "use client"
 
 import type * as React from "react"
-import { BarChart3, Package, ShoppingCart, Users, Calendar, AlertTriangle, Clock, Settings, Coffee, LogOut } from "lucide-react"
-
+import {
+  BarChart3,
+  Package,
+  ShoppingCart,
+  Users,
+  Calendar,
+  AlertTriangle,
+  Clock,
+  Settings,
+  Coffee,
+  LogOut,
+} from "lucide-react"
 import {
   Sidebar,
   SidebarContent,
@@ -52,19 +62,30 @@ const data = {
   ],
   quickActions: [
     {
-      title: "Low Stock Alerts",
-      url: "#",
-      icon: AlertTriangle,
+      title: "Settings",
+      url: "/settings",
+      icon: Settings,
     },
     {
-      title: "Daily Schedule",
-      url: "#",
+      title: "Activity Log",
+      url: "/activity-log",
       icon: Clock,
     },
     {
-      title: "Settings",
+      title: "Alerts",
+      url: "/alerts",
+      icon: AlertTriangle,
+    },
+    {
+      title: "Manage Account",
+      url: "/account",
+      icon: Users,
+      isActive: false,
+    },
+    {
+      title: "Logout",
       url: "#",
-      icon: Settings,
+      icon: LogOut,
     },
   ],
 }
@@ -107,34 +128,36 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <SidebarMenu>
               {data.quickActions.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <a href={item.url}>
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </a>
-                  </SidebarMenuButton>
+                  {item.title === "Logout" ? (
+                    <SidebarMenuButton
+                      asChild
+                      onClick={() => {
+                        if (typeof window !== "undefined") {
+                          localStorage.removeItem("token")
+                          localStorage.removeItem("user")
+                          window.location.href = "/"
+                        }
+                      }}
+                    >
+                      <button type="button" className="flex items-center w-full text-red-600 hover:text-red-800">
+                        <item.icon />
+                        <span>{item.title}</span>
+                      </button>
+                    </SidebarMenuButton>
+                  ) : (
+                    <SidebarMenuButton asChild isActive={item.isActive}>
+                      <a href={item.url}>
+                        <item.icon />
+                        <span>{item.title}</span>
+                      </a>
+                    </SidebarMenuButton>
+                  )}
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>
           </SidebarGroupContent>
-
         </SidebarGroup>
       </SidebarContent>
-       <div className="p-4 border-t border-accent flex">
-        <button
-          className="flex items-center gap-2 text-red-600 hover:text-red-800 font-semibold"
-          onClick={() => {
-            if (typeof window !== "undefined") {
-              localStorage.removeItem("token");
-              localStorage.removeItem("user");
-              window.location.href = "/"; // Redirect to login page
-            }
-          }}
-        >
-          <LogOut className="w-4 h-4" />
-          Log Out
-        </button>
-      </div>
       <SidebarRail />
     </Sidebar>
   )

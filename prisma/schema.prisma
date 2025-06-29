@@ -26,6 +26,17 @@ model User {
   resetTokenExpired DateTime?
 
   sessions Session[]
+  auditLogs AuditLog[] @relation("UserAuditLogs")
+}
+model AuditLog{
+    id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation("UserAuditLogs", fields: [userId], references: [id])
+  action    String   // e.g. "login", "add_item", "update_stock"
+  itemId    String?  // Optional: which item was affected
+  item      Item?    @relation("ItemAuditLogs", fields: [itemId], references: [id])
+  details   String?  // Optional: extra info (e.g. "Stock changed from 10 to 7")
+  createdAt DateTime @default(now())
 }
 
 model Session {
@@ -49,6 +60,8 @@ model Item {
   supplierId   String
   supplier     Supplier @relation(fields: [supplierId], references: [id])
   lastUpdated  DateTime @updatedAt
+
+  auditLogs    AuditLog[] @relation("ItemAuditLogs")
 }
 
 model Category {

@@ -206,7 +206,7 @@ export default function AuthForm() {
                     </Button>
                   </div>
                   {alert && (
-                    <div className="text-red-500 text-sm text-center">{alert.message}</div>
+                    <div className="text-green-500 text-sm text-center">{alert.message}</div>
                   )}
                   <Button type="submit" className="w-full bg-amber-600 hover:bg-amber-700 text-white">
                     Sign In
