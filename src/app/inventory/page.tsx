@@ -47,7 +47,8 @@ export default function StockOpnameDashboard() {
   type Supplier = { id: string | number; name: string };
   const [category, setCategory] = useState<category[]>([]);
   type category = { id: string | number; title: string };
-  const [unit, setUnit] = useState<string[]>([]);
+  type Unit = { id: string | number; name: string };
+  const [unit, setUnit] = useState<Unit[]>([]);
   const categories = ["All", ...Array.from(new Set(inventoryData.map(item => item.category?.title || item.categoryTitle).filter(Boolean)))];
   type unit = { id: string | number; title: string };
   const [newItem, setNewItem] = useState({
@@ -107,20 +108,14 @@ export default function StockOpnameDashboard() {
     }
   }, [showAddForm]);
 
-  useEffect(() => {
-    if (showAddForm) {
-      fetch("/api/unit")
-        .then(response => response.json())
-        .then(data => {
-          // Extract only the unit strings and remove duplicates
-          const uniqueUnits = Array.from(new Set(data.map((item: { unit: string }) => item.unit).filter(Boolean))) as string[];
-          setUnit(uniqueUnits);
-        })
-        .catch(() => setUnit([]));
-
-
-    }
-  }, [showAddForm]);
+useEffect(() => {
+  if (showAddForm) {
+    fetch("/api/unit")
+      .then(response => response.json())
+      .then(data => setUnit(data))
+      .catch(() => setUnit([]));
+  }
+}, [showAddForm]);
 
   useEffect(() => {
     setLoading(true);
@@ -128,6 +123,16 @@ export default function StockOpnameDashboard() {
     return () => clearTimeout(timer);
   }, []);
 
+
+
+  useEffect(() => {
+    if (showAddForm) {
+      fetch("/api/unit")
+        .then(response => response.json())
+        .then(data => setUnit(data))
+        .catch(() => setUnit([]));
+    }
+  }, [showAddForm]);
 
   const filteredData = inventoryData.filter((item) => {
     const matchesSearch =
@@ -393,12 +398,12 @@ export default function StockOpnameDashboard() {
                                 value={newItem.unit}
                                 onChange={e => setNewItem({ ...newItem, unit: e.target.value })}
                                 required
-                                className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white">
-
+                                className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white"
+                              >
                                 <option value="">Select Unit</option>
                                 {unit.map(u => (
-                                  <option key={u} value={u}>
-                                    {u}
+                                  <option key={u.id} value={u.name}>
+                                    {u.name}
                                   </option>
                                 ))}
                               </select>
@@ -501,12 +506,12 @@ export default function StockOpnameDashboard() {
                         }}
                         className="flex flex-col gap-4 mb-6 w-full justify-center max-w-2xl mx-auto bg-gray-900 rounded-lg shadow-lg p-6"
                       >
-                        <label className="grid grid-cols-1 md:grid-cols-2 gap-4 text-amber-100">
-                          <span>Type :</span>
+                        <label className="grid grid-cols-3 md:grid-cols-2 gap-4 text-amber-100 " >
+                          <span>Type of Stock:</span>
                           <select
                             value={updateType}
                             onChange={e => setUpdateType(e.target.value as "increase" | "decrease")}
-                            // className="ml-2 border rounded px-2 py-1"
+                          // className="ml-2 border rounded px-2 py-1"
                           >
                             <option className="bg-gray-900" value="increase">Stock In</option>
                             <option className="bg-gray-900" value="decrease">Stock Out</option>
@@ -522,8 +527,15 @@ export default function StockOpnameDashboard() {
                             required
                           />
                         </label>
-                        <Button
-                          className="justify-end-safe mb-6 w-30 bg-amber  hover:bg-amber-700 text-white font-semibold  " type="submit" variant={"outline"}>Update Stock</Button>
+                        <div className="flex justify-end mt-4">
+                          <Button
+                            className="w-30 bg-amber hover:bg-amber-700 text-white font-semibold"
+                            type="submit"
+                            variant="outline"
+                          >
+                            Update Stock
+                          </Button>
+                        </div>
                       </form>
                     </DialogContent>
                   </Dialog>
@@ -568,7 +580,7 @@ export default function StockOpnameDashboard() {
                           <TableCell className="text-right">
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
-                                <Button className="hover:bg-gray-200"variant="ghost" size="sm">
+                                <Button className="hover:bg-gray-200" variant="ghost" size="sm">
                                   Actions
                                 </Button>
                               </DropdownMenuTrigger>

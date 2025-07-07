@@ -17,17 +17,25 @@ export async function GET() {
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
-        const { name } = body;
+        const { name, address, phone } = body;
 
         // Validate required fields
         if (!name) {
             return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
         }
 
+        // Validate phone format BEFORE creating supplier
+        const phoneRegex = /^[0-9+\-() ]+$/;
+        if (phone && !phoneRegex.test(phone)) {
+            return NextResponse.json({ error: "Invalid phone format" }, { status: 400 });
+        }
+
         // Create new supplier
         const newSupplier = await prisma.supplier.create({
             data: {
                 name,
+                address,
+                phone,
             },
         });
 

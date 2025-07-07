@@ -239,7 +239,7 @@ export default function DashboardPage() {
                     <SidebarTrigger className="-ml-1" />
                     <div className="flex items-center gap-2">
                         <Coffee className="h-6 w-6" />
-                        <h1 className="text-xl font-semibold">Coffee Shop Inventory</h1>
+                        <h1 className="text-xl font-semibold">Sora Coffee Inventory</h1>
                     </div>
                 </header>
 
@@ -250,7 +250,7 @@ export default function DashboardPage() {
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                                 <Grid3X3 className="w-6 h-6 text-gray-600" />
-                                <h1 className="text-2xl font-semibold text-gray-900">Dashboard</h1>
+                                <h1 className="text-2xl font-semibold text-gray-900">Activity Log of Stock Opname</h1>
                             </div>
                             <div className="flex items-center gap-2">
                                 <Button

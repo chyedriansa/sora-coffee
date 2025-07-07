@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from '@/lib/prisma';
+import { NextRequest, NextResponse } from "next/server"
 import bcrypt from 'bcrypt';
 import jwt from "jsonwebtoken";
+import { prisma } from "@/lib/prisma";
+
 
 const JWT_SECRET = process.env.JWT_SECRET || "8c83eae5e44c1fa45054eb285885d4728cfe91b12a4632b318410d3042624fc2"
 
@@ -12,13 +13,14 @@ export async function POST(req: NextRequest) {
     const { type, email, password, name } = body;
 
     if (type === "register") {
-      const existing = await prisma.user.findFirst({ where: { email } });
+      const existing = await prisma.user.findUnique({ where: { email: email } });
       if (existing) {
         return NextResponse.json({ error: "email already exists" }, { status: 400 });
       }
       const hashedPassword = await bcrypt.hash(password, 12);
       const user = await prisma.user.create({
-        data: { name, email, password: hashedPassword },
+        data : { name, email, password: hashedPassword, lastLogin: new Date(), resetTokenExpired: new Date, resetToken: null },
+        
 
       });
       const token = jwt.sign({ userId: user.id, email: user.email }, JWT_SECRET, { expiresIn: '1h' });
@@ -34,7 +36,7 @@ export async function POST(req: NextRequest) {
       if (!valid) {
         return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
       }
-      const token = jwt.sign({ userId: user.id, email: user.email }, JWT_SECRET, { expiresIn: '0.5h' });
+      const token = jwt.sign({ userId: user.id, email: user.email }, JWT_SECRET, { expiresIn: '365d' });
       await prisma.user.update({
         where: { id: user.id },
         data: { lastLogin: new Date() }
