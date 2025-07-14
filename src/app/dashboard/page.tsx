@@ -27,6 +27,8 @@ import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 
 
+
+
 interface RecentActivity {
     id: string
     type: "sale" | "restock" | "alert"
@@ -124,11 +126,6 @@ export default function DashboardPage() {
     const [units, setUnit] = useState<string[]>([]);
     const [categories, setCategory] = useState<string[]>([]);
     const [suppliers, setSupplier] = useState<{ id: string; name: string }[]>([]);
-    useEffect(() => {
-        fetch("/api/suppliers")
-            .then(res => res.json())
-            .then(data => setSupplier(data));
-    }, []);
     const [timeRange, setTimeRange] = useState("")
     const [checkingAuth, setCheckingAuth] = useState(true);
     const router = useRouter();
@@ -196,9 +193,9 @@ export default function DashboardPage() {
     interface InventoryItem {
         id: string;
         name: string;
-        quantity: number;
+        currentStock: number;
+        maxStock: number;
         unit: string;
-        [key: string]: any; // Add more fields as needed
     }
 
     useEffect(() => {
@@ -443,7 +440,7 @@ export default function DashboardPage() {
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         {/* Top Selling Products */}
-                        <Card>
+                        {/* <Card>
                             <CardHeader>
                                 <CardTitle>Top Selling Products</CardTitle>
                                 <p className="text-sm text-muted-foreground">Best performing products this week</p>
@@ -478,7 +475,7 @@ export default function DashboardPage() {
                                     ))}
                                 </div>
                             </CardContent>
-                        </Card>
+                        </Card> */}
 
                         {/* Recent Activities */}
                         <Card>
@@ -531,38 +528,31 @@ export default function DashboardPage() {
                         </Card>
                     </div>
 
-                    {/* Inventory Status */}
+                    {/* Inventory Status - Integrated with backend, horizontally scrollable */}
                     <Card className="mt-6">
                         <CardHeader>
                             <CardTitle>Inventory Status</CardTitle>
                             <p className="text-sm text-muted-foreground">Current stock levels of your products</p>
                         </CardHeader>
                         <CardContent>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                <div className="space-y-2">
-                                    <div className="flex justify-between text-sm">
-                                        <span>Arabica Beans</span>
-                                        <span>75%</span>
-                                    </div>
-                                    <Progress value={75} className="h-2" />
-                                    <p className="text-xs text-gray-500">7.5kg / 10kg</p>
-                                </div>
-                                <div className="space-y-2">
-                                    <div className="flex justify-between text-sm">
-                                        <span>Fresh Milk</span>
-                                        <span>20%</span>
-                                    </div>
-                                    <Progress value={20} className="h-2" />
-                                    <p className="text-xs text-red-500">5 packs / 25 packs</p>
-                                </div>
-                                <div className="space-y-2">
-                                    <div className="flex justify-between text-sm">
-                                        <span>Houseblend Beans</span>
-                                        <span>10%</span>
-                                    </div>
-                                    <Progress value={10} className="h-2" />
-                                    <p className="text-xs text-red-500">1kg / 10kg</p>
-                                </div>
+                            <div className="flex overflow-x-auto gap-6 pb-2" style={{ scrollbarWidth: 'thin' }}>
+                                {inventoryData.length === 0 ? (
+                                    <div className="text-gray-500">No inventory data available.</div>
+                                ) : (
+                                    inventoryData.map((item) => {
+                                        const percent = item.maxStock ? Math.round((item.currentStock / item.maxStock) * 100) : 0;
+                                        return (
+                                            <div key={item.id} className="min-w-[220px] space-y-2 bg-gray-50 rounded-lg p-4 shadow-sm">
+                                                <div className="flex justify-between text-sm">
+                                                    <span>{item.name}</span>
+                                                    <span>{percent}%</span>
+                                                </div>
+                                                <Progress value={percent} className="h-2" />
+                                                <p className={`text-xs ${percent < 20 ? 'text-red-500' : 'text-gray-500'}`}>{item.currentStock} {item.unit} / {item.maxStock} {item.unit}</p>
+                                            </div>
+                                        );
+                                    })
+                                )}
                             </div>
                         </CardContent>
                     </Card>
