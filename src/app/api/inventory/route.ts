@@ -127,47 +127,69 @@ export async function DELETE(request: NextRequest) {
     });
     return NextResponse.json(deletedItem);
   } catch (error) {
-    console.error("Error deleting item:", error); 
+    console.error("Error deleting item:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
     );
   }
 }
+
 export async function PATCH(request: NextRequest) {
   try {
     const body = await request.json();
 
     // Handle update stock (increase or decrease)
     if (body.updateStockQty !== undefined && body.id && body.updateType) {
-      const item = await prisma.item.findUnique({ where: { id: body.id } });
-      if (!item) {
-        return NextResponse.json({ error: "Item not found" }, { status: 404 });
+      const authHeader = request.headers.get("authorization");
+      if (!authHeader) {
+        return NextResponse.json({ error: "No token" }, { status: 401 });
       }
-      const oldStock = item.currentStock || 0;
-      let newStock = oldStock;
-      if (body.updateType === "increase") {
-        newStock += Number(body.updateStockQty);
-      } else if (body.updateType === "decrease") {
-        newStock -= Number(body.updateStockQty);
-        if (newStock < 0) {
-          return NextResponse.json({ error: "Not enough stock" }, { status: 400 });
+      const token = authHeader.split(" ")[1];
+      try {
+        const decoded = verify(token, JWT_SECRET) as { userId: string };
+
+        const item = await prisma.item.findUnique({ where: { id: body.id } });
+        if (!item) {
+          return NextResponse.json({ error: "Item not found" }, { status: 404 });
         }
+        const oldStock = item.currentStock || 0;
+        let newStock = oldStock;
+        if (body.updateType === "increase") {
+          newStock += Number(body.updateStockQty);
+        } else if (body.updateType === "decrease") {
+          newStock -= Number(body.updateStockQty);
+          if (newStock < 0) {
+            return NextResponse.json({ error: "Not enough stock" }, { status: 400 });
+          }
+        }
+        const updated = await prisma.item.update({
+          where: { id: body.id },
+          data: { currentStock: newStock },
+          include: { category: true, supplier: true },
+        });
+
+        // Audit log here
+        await prisma.auditLog.create({
+          data: {
+            userId: decoded.userId, // Use the userId from the token
+            action: "update_stock",
+            itemId: item.id, // Use the item's id
+            details: `Stock changed from ${oldStock} to ${newStock}`,
+          }
+        })
+
+        return NextResponse.json(updated);
+      } catch (jwtError: any) {
+        console.error("JWT Verification Error:", jwtError);
+        return NextResponse.json({ error: "Invalid token" }, { status: 401 });
       }
-      const updated = await prisma.item.update({
-        where: { id: body.id },
-        data: { currentStock: newStock },
-        include: { category: true, supplier: true },
-      });
-
-      // Optionally: Audit log here
-
-      return NextResponse.json(updated);
     }
 
     // ...existing update logic for full item update...
     // (leave your existing code here)
-  } catch (error) {
+  }
+  catch (error) {
     console.error("Error updating item:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }

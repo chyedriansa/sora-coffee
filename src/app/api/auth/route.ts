@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
       if (!valid) {
         return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
       }
-      const token = jwt.sign({ userId: user.id, email: user.email }, JWT_SECRET, { expiresIn: '365d' });
+      const token = jwt.sign({ userId: user.id, email: user.email }, JWT_SECRET, { expiresIn: '1h' });
       await prisma.user.update({
         where: { id: user.id },
         data: { lastLogin: new Date() }

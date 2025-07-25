@@ -129,19 +129,19 @@ export default function AuthForm() {
           </CardHeader>
           <CardContent>
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-3 bg-gray-700">
+              <TabsList className="grid w-full grid-cols-2 bg-gray-700">
                 <TabsTrigger
                   value="login"
                   className="text-gray-300 data-[state=active]:bg-amber-600 data-[state=active]:text-white"
                 >
                   Login
                 </TabsTrigger>
-                <TabsTrigger
+                {/* <TabsTrigger
                   value="register"
                   className="text-gray-300 data-[state=active]:bg-amber-600 data-[state=active]:text-white"
                 >
                   Register
-                </TabsTrigger>
+                </TabsTrigger> */}
                 <TabsTrigger
                   value="reset"
                   className="text-gray-300 data-[state=active]:bg-amber-600 data-[state=active]:text-white"
@@ -174,7 +174,9 @@ export default function AuthForm() {
                     <div className="relative">
                       <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                       <Input
+
                         id="login-password"
+                        autoComplete="off"
                         type={showPassword ? "text" : "password"}
                         placeholder="Enter your password"
                         className="pl-10 pr-10 bg-gray-700 border-gray-600 text-white placeholder:text-gray-400 focus:border-amber-500"

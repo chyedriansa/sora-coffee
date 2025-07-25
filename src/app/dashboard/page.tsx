@@ -3,123 +3,26 @@
 import { useState } from "react"
 import {
     TrendingUp,
-    TrendingDown,
     Package,
     AlertTriangle,
     Grid3X3,
     DollarSign,
     ShoppingCart,
-    Users,
     Boxes,
     Calendar,
     Coffee,
     Building2,
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/app-sidebar"
 import { useRouter } from "next/navigation"
-import { useEffect } from "react"   // Importing necessary components and icons
+import { useEffect } from "react"
 import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-
-
-
-
-interface RecentActivity {
-    id: string
-    type: "sale" | "restock" | "alert"
-    description: string
-    time: string
-    amount?: string
-}
-
-interface TopProduct {
-    name: string
-    category: string
-    sold: number
-    revenue: string
-    trend: "up" | "down"
-    percentage: number
-}
-
-const recentActivities: RecentActivity[] = [
-    {
-        id: "1",
-        type: "sale",
-        description: "Sold 2x Arabica Coffee to Customer #1234",
-        time: "2 minutes ago",
-        amount: "IDR 45,000",
-    },
-    {
-        id: "2",
-        type: "alert",
-        description: "Low stock alert: Cimory Fresh Milk",
-        time: "15 minutes ago",
-    },
-    {
-        id: "3",
-        type: "restock",
-        description: "Restocked Houseblend Beans (+10 kg)",
-        time: "1 hour ago",
-    },
-    {
-        id: "4",
-        type: "sale",
-        description: "Sold 1x Cappuccino to Customer #1235",
-        time: "2 hours ago",
-        amount: "IDR 25,000",
-    },
-    {
-        id: "5",
-        type: "sale",
-        description: "Sold 3x Espresso to Customer #1236",
-        time: "3 hours ago",
-        amount: "IDR 60,000",
-    },
-]
-
-const topProducts: TopProduct[] = [
-    {
-        name: "Arabica Beans",
-        category: "Coffee Beans",
-        sold: 45,
-        revenue: "IDR 855,000",
-        trend: "up",
-        percentage: 12,
-    },
-    {
-        name: "Cappuccino",
-        category: "Beverages",
-        sold: 32,
-        revenue: "IDR 800,000",
-        trend: "up",
-        percentage: 8,
-    },
-    {
-        name: "Espresso",
-        category: "Beverages",
-        sold: 28,
-        revenue: "IDR 560,000",
-        trend: "down",
-        percentage: 5,
-    },
-    {
-        name: "Fresh Milk",
-        category: "Dairy",
-        sold: 15,
-        revenue: "IDR 262,500",
-        trend: "up",
-        percentage: 15,
-    },
-]
-
-
-
-
+import AuthProvider from "@/components/AuthProvider"
 
 
 export default function DashboardPage() {
@@ -140,6 +43,7 @@ export default function DashboardPage() {
     const [newSupplierAddress, setNewSupplierAddress] = useState("");
 
 
+    // Check authentication status
     const handleAddUnit = async (e: React.FormEvent) => {
         e.preventDefault();
         await fetch("/api/unit", {
@@ -154,6 +58,8 @@ export default function DashboardPage() {
             .then(res => res.json())
             .then(data => setUnit(data.map((u: { name: string }) => u.name)));
     }
+
+    // Handle adding a new category
     const handleAddCategory = async (e: React.FormEvent) => {
         e.preventDefault();
         await fetch("/api/category", {
@@ -169,6 +75,7 @@ export default function DashboardPage() {
             .then(data => setCategory(data.map((c: { title: string }) => c.title)));
     };
 
+    // Handle adding a new supplier
     const handleAddSupplier = async (e: React.FormEvent) => {
         e.preventDefault();
         await fetch("/api/suppliers", {
@@ -229,6 +136,7 @@ export default function DashboardPage() {
 
 
     return (
+        <AuthProvider>
         <SidebarProvider>
             <AppSidebar />
             <SidebarInset>
@@ -377,7 +285,7 @@ export default function DashboardPage() {
                                 </Dialog>
                                 <Button onClick={() => setShowAddUnit(true)} className="w-full justify-start">
                                     + Add Unit
-                                    <Boxes className="w-4 h-4 mr-2"/>
+                                    <Boxes className="w-4 h-4 mr-2" />
                                 </Button>
                                 <Dialog open={showAddUnit} onOpenChange={setShowAddUnit}>
                                     <DialogContent>
@@ -426,10 +334,10 @@ export default function DashboardPage() {
                                         </form>
                                     </DialogContent>
                                 </Dialog>
-                                {/* <Button className="w-full justify-start" variant="outline">
+                                <Button className="w-full justify-start" variant="outline">
                                     <ShoppingCart className="w-4 h-4 mr-2" />
                                     Create Order
-                                </Button> */}
+                                </Button>
                                 <Button className="w-full justify-start" variant="outline">
                                     <Calendar className="w-4 h-4 mr-2" />
                                     Generate Report
@@ -439,44 +347,7 @@ export default function DashboardPage() {
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        {/* Top Selling Products */}
-                        {/* <Card>
-                            <CardHeader>
-                                <CardTitle>Top Selling Products</CardTitle>
-                                <p className="text-sm text-muted-foreground">Best performing products this week</p>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="space-y-4">
-                                    {topProducts.map((product, index) => (
-                                        <div key={index} className="flex items-center justify-between">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
-                                                    <Coffee className="w-4 h-4 text-orange-600" />
-                                                </div>
-                                                <div>
-                                                    <p className="font-medium text-sm">{product.name}</p>
-                                                    <p className="text-xs text-gray-500">{product.category}</p>
-                                                </div>
-                                            </div>
-                                            <div className="text-right">
-                                                <p className="font-medium text-sm">{product.revenue}</p>
-                                                <div className="flex items-center gap-1">
-                                                    {product.trend === "up" ? (
-                                                        <TrendingUp className="w-3 h-3 text-green-500" />
-                                                    ) : (
-                                                        <TrendingDown className="w-3 h-3 text-red-500" />
-                                                    )}
-                                                    <span className={`text-xs ${product.trend === "up" ? "text-green-500" : "text-red-500"}`}>
-                                                        {product.percentage}%
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </CardContent>
-                        </Card> */}
-
+                        {/* Top Products */}
                         {/* Recent Activities */}
                         <Card>
                             <CardHeader>
@@ -485,44 +356,7 @@ export default function DashboardPage() {
                             </CardHeader>
                             <CardContent>
                                 <div className="space-y-4">
-                                    {recentActivities.map((activity) => (
-                                        <div key={activity.id} className="flex items-start gap-3">
-                                            <div
-                                                className={`w-8 h-8 rounded-lg flex items-center justify-center ${activity.type === "sale"
-                                                    ? "bg-green-100"
-                                                    : activity.type === "alert"
-                                                        ? "bg-red-100"
-                                                        : "bg-blue-100"
-                                                    }`}
-                                            >
-                                                {activity.type === "sale" ? (
-                                                    <DollarSign
-                                                        className={`w-4 h-4 ${activity.type === "sale"
-                                                            ? "text-green-600"
-                                                            : activity.type === "alert"
-                                                                ? "text-red-600"
-                                                                : "text-blue-600"
-                                                            }`}
-                                                    />
-                                                ) : activity.type === "alert" ? (
-                                                    <AlertTriangle className="w-4 h-4 text-red-600" />
-                                                ) : (
-                                                    <Package className="w-4 h-4 text-blue-600" />
-                                                )}
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-sm font-medium">{activity.description}</p>
-                                                <div className="flex items-center justify-between">
-                                                    <p className="text-xs text-gray-500">{activity.time}</p>
-                                                    {activity.amount && (
-                                                        <Badge variant="secondary" className="text-xs">
-                                                            {activity.amount}
-                                                        </Badge>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
+                                    
                                 </div>
                             </CardContent>
                         </Card>
@@ -535,30 +369,39 @@ export default function DashboardPage() {
                             <p className="text-sm text-muted-foreground">Current stock levels of your products</p>
                         </CardHeader>
                         <CardContent>
-                            <div className="flex overflow-x-auto gap-6 pb-2" style={{ scrollbarWidth: 'thin' }}>
-                                {inventoryData.length === 0 ? (
-                                    <div className="text-gray-500">No inventory data available.</div>
-                                ) : (
-                                    inventoryData.map((item) => {
-                                        const percent = item.maxStock ? Math.round((item.currentStock / item.maxStock) * 100) : 0;
-                                        return (
-                                            <div key={item.id} className="min-w-[220px] space-y-2 bg-gray-50 rounded-lg p-4 shadow-sm">
-                                                <div className="flex justify-between text-sm">
-                                                    <span>{item.name}</span>
-                                                    <span>{percent}%</span>
+                            <div className="block max-w-full overflow-x-auto">
+                                <div className="flex gap-6 pb-2">
+                                    {inventoryData.length === 0 ? (
+                                        <div className="text-gray-500">No inventory data available.</div>
+                                    ) : (
+                                        inventoryData.map((item) => {
+                                            const percent = item.maxStock ? Math.round((item.currentStock / item.maxStock) * 100) : 0;
+                                            return (
+                                                <div
+                                                    key={item.id}
+                                                    className="min-w-[220px] space-y-2 bg-gray-50 rounded-lg p-4 shadow-sm"
+                                                >
+                                                    <div className="flex justify-between text-sm">
+                                                        <span>{item.name}</span>
+                                                        <span>{percent}%</span>
+                                                    </div>
+                                                    <Progress value={percent} className="h-2" />
+                                                    <p className={`text-xs ${percent < 20 ? 'text-red-500' : 'text-gray-500'}`}>
+                                                        {item.currentStock} {item.unit} / {item.maxStock} {item.unit}
+                                                    </p>
                                                 </div>
-                                                <Progress value={percent} className="h-2" />
-                                                <p className={`text-xs ${percent < 20 ? 'text-red-500' : 'text-gray-500'}`}>{item.currentStock} {item.unit} / {item.maxStock} {item.unit}</p>
-                                            </div>
-                                        );
-                                    })
-                                )}
+                                            );
+                                        })
+                                    )}
+                                </div>
                             </div>
                         </CardContent>
                     </Card>
                 </div>
             </SidebarInset>
         </SidebarProvider>
+
+        </AuthProvider>
     )
 }
 function setUnit(arg0: any): any {
