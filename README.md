@@ -1,36 +1,155 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ☕ Sora Coffee Stock Management System
 
-## Getting Started
+A modern inventory and activity log management system for coffee shops, built with **Next.js**, **Prisma**, and **PostgreSQL**.
 
-First, run the development server:
+---
+
+## 🚀 Getting Started
+
+### 1. **Clone the Repository**
+
+```bash
+git clone https://github.com/your-username/sora-coffee.git
+cd sora-coffee
+```
+
+### 2. **Install Dependencies**
+
+```bash
+npm install
+# or
+yarn install
+```
+
+### 3. **Configure Environment Variables**
+
+Copy the example environment file and fill in your database and JWT secrets:
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env` and set:
+
+- `DATABASE_URL` (your PostgreSQL connection string)
+- `JWT_SECRET` (a strong secret for authentication)
+
+### 4. **Run Database Migrations**
+
+```bash
+npx prisma migrate dev
+```
+
+### 5. **Start the Development Server**
 
 ```bash
 npm run dev
 # or
 yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Visit [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 📁 Project Structure
 
-## Learn More
+```
+src/
+  app/
+    api/                # API routes (REST endpoints)
+      activity-log/     # Activity log endpoints
+      inventory/        # Inventory endpoints
+      category/         # Category endpoints
+      suppliers/        # Supplier endpoints
+      unit/             # Unit endpoints
+      auth/             # Authentication endpoints
+    components/         # Reusable UI components
+    hooks/              # Custom React hooks
+    lib/                # Utility libraries (Prisma, auth, etc.)
+    globals.css         # Global styles
+    layout.tsx          # App layout
+    page.tsx            # Main entry page
+    ...
+  prisma/
+    schema.prisma       # Prisma schema
+  ...
+```
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🛠️ Features
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **Authentication**: Secure login with JWT.
+- **Inventory Management**: Add, update, and delete items with category, supplier, and unit support.
+- **Stock Opname**: Track and update stock levels.
+- **Activity Log**: See who changed what and when.
+- **Suppliers & Categories**: Manage suppliers and item categories.
+- **Responsive UI**: Works on desktop and mobile.
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🧑‍💻 Development
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Useful Scripts
+
+- `npm run dev` — Start the development server
+- `npx prisma studio` — Open Prisma Studio to view/edit your database
+- `npx prisma migrate dev` — Run database migrations
+
+### API Endpoints
+
+- `POST /api/auth` — User authentication
+- `GET /api/inventory` — List inventory items
+- `PATCH /api/inventory` — Update stock and log activity
+- `GET /api/activity-log` — Fetch activity logs
+- `POST /api/category` — Add a new category
+- ...and more
+
+---
+
+## 📝 Example API Usage
+
+**Update Stock (with JWT token):**
+```bash
+curl -X PATCH http://localhost:3000/api/inventory \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <your_token>" \
+  -d '{"id":"item_id","updateStockQty":5,"updateType":"increase"}'
+```
+
+**Add Category:**
+```bash
+curl -X POST http://localhost:3000/api/category \
+  -H "Content-Type: application/json" \
+  -d '{"title":"Espresso Beans"}'
+```
+
+---
+
+## 🖥️ UI Preview
+
+- **Dashboard**: Overview of inventory and quick stats.
+- **Inventory Page**: List, search, and manage items.
+- **Activity Log**: See all recent actions.
+- **Sidebar**: Easy navigation between features.
+
+---
+
+## 📚 Learn More
+
+- [Next.js Documentation](https://nextjs.org/docs)
+- [Prisma Documentation](https://www.prisma.io/docs/)
+- [Tailwind CSS](https://tailwindcss.com/)
+
+---
+
+## 📦 Deployment
+
+Deploy easily on [Vercel](https://vercel.com/) or your favorite Node.js hosting.
+
+---
+
+## 🤝 Contributing
+
+Pull requests are welcome! For major changes, please open an
