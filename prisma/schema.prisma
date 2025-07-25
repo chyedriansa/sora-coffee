@@ -14,49 +14,73 @@ datasource db {
 }
 
 model User {
-  id                String    @id @default(cuid())
+  id                String     @id @default(cuid())
   name              String?
-  email             String?
+  email             String?    @unique
   password          String?
+  lastLogin         DateTime?
   emailVerified     DateTime?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
   resetToken        String?
-  resetTokenExpired DateTime?
-  sessions Session[]
+  resetTokenExpired DateTime
+  sessions          Session[]
+  auditLogs         AuditLog[] @relation("UserAuditLogs")
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation("UserAuditLogs", fields: [userId], references: [id])
+  action    String // e.g. "login", "add_item", "update_stock"
+  itemId    String? // Optional: which item was affected
+  item      Item?    @relation("ItemAuditLogs", fields: [itemId], references: [id])
+  details   String? // Optional: extra info (e.g. "Stock changed from 10 to 7")
+  createdAt DateTime @default(now())
 }
 
 model Session {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique
+  id           String    @id @default(cuid())
+  sessionToken String    @unique
   userId       String
-  user         User     @relation(fields: [userId], references: [id])
+  user         User      @relation(fields: [userId], references: [id])
   expires      DateTime?
 }
 
 model Item {
-  id           String      @id @default(cuid())
+  id           String   @id @default(cuid())
   name         String
   categoryId   String
-  category     Category    @relation(fields: [categoryId], references: [id])
-  currentStock Int         //stock now
+  category     Category @relation(fields: [categoryId], references: [id])
+  currentStock Int
   minStock     Int
   maxStock     Int
   unit         String
   price        Int
   supplierId   String
-  supplier     Supplier    @relation(fields: [supplierId], references: [id])
-  lastUpdated  DateTime    @updatedAt
+  supplier     Supplier @relation(fields: [supplierId], references: [id])
+  lastUpdated  DateTime @updatedAt
+  units        Unit?    @relation(fields: [unit], references: [name])
+
+  auditLogs AuditLog[] @relation("ItemAuditLogs")
+}
+
+model Unit {
+  id    String @id @default(cuid())
+  name  String @unique
+  items Item[] // optional, if you want relation
 }
 
 model Category {
-  id    String  @id @default(cuid())
-  title String  @unique
+  id    String @id @default(cuid())
+  title String @unique
   items Item[]
 }
 
 model Supplier {
   id      String  @id @default(cuid())
   name    String  @unique
+  address String?
+  phone   String?
   items   Item[]
 }

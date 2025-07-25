@@ -1,51 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from '@/lib/prisma';
+import { NextRequest, NextResponse } from "next/server"
 import bcrypt from 'bcrypt';
+import jwt from "jsonwebtoken";
+import { prisma } from "@/lib/prisma";
 
 
-// export async function POST(
-//     req: NextRequest
-// ) {
-//     try {
-//         const body = await req.json();
-//         // Hash the password from the request body
-//         const hashedPassword = await bcrypt.hash(body.Password, 12);
-//         const user = await prisma.user.findFirst({
-//             where: {
-//                 email: body.Email,
-//                 password: hashedPassword,
-//             }
-//         });
-//         // You may want to return a response here if user is found or not
-//         return NextResponse.json({ message: "Register Succesfull", user });
-//     } catch (error) {
-//         console.error("Error During Auth", error);
-//         return NextResponse.json({ error: "internal server error " }, { status: 500 });
-//     }
-// }
+const JWT_SECRET = process.env.JWT_SECRET || "8c83eae5e44c1fa45054eb285885d4728cfe91b12a4632b318410d3042624fc2"
 
-
-// export async function GET(
-//     req: NextRequest
-// ): Promise<NextResponse> {
-//     try {
-//         // You can use query parameters or headers from req if needed
-//         const users = await prisma.user.findFirst({
-//             select: {
-//                 email: true,
-//                 password: true,
-//             }
-//         });
-//         return NextResponse.json({ users });
-//     } catch (error) {
-//         console.error("Error During Login", error);
-//         return NextResponse.json({ error: "internal server error" }, { status: 500 });
-//     }
-// }
-
-// import { NextRequest, NextResponse } from "next/server";
-// import { prisma } from '@/lib/prisma';
-// import bcrypt from 'bcrypt';
 
 export async function POST(req: NextRequest) {
   try {
@@ -53,15 +13,18 @@ export async function POST(req: NextRequest) {
     const { type, email, password, name } = body;
 
     if (type === "register") {
-      const existing = await prisma.user.findFirst({ where: { email } });
+      const existing = await prisma.user.findUnique({ where: { email: email } });
       if (existing) {
         return NextResponse.json({ error: "email already exists" }, { status: 400 });
       }
       const hashedPassword = await bcrypt.hash(password, 12);
       const user = await prisma.user.create({
-        data: { name, email, password: hashedPassword},
+        data : { name, email, password: hashedPassword, lastLogin: new Date(), resetTokenExpired: new Date, resetToken: null },
+        
+
       });
-      return NextResponse.json({ message: "Register successful", user: { id: user.id, email: user.email } });
+      const token = jwt.sign({ userId: user.id, email: user.email }, JWT_SECRET, { expiresIn: '1h' });
+      return NextResponse.json({ message: "Register successful", token, user: { id: user.id, email: user.email } });
     }
 
     if (type === "login") {
@@ -73,13 +36,18 @@ export async function POST(req: NextRequest) {
       if (!valid) {
         return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
       }
-      return NextResponse.json({ message: "Login successful", user: { id: user.id, email: user.email } });
+      const token = jwt.sign({ userId: user.id, email: user.email }, JWT_SECRET, { expiresIn: '1h' });
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { lastLogin: new Date() }
+      });
+      return NextResponse.json({ message: "Login successful", token, user: { id: user.id, email: user.email } });
     }
 
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   } catch (error) {
-    console.error("Error During Auth", error);
-    return NextResponse.json({ error: "internal server error" }, { status: 500 });
+    console.error("Error in auth route:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 

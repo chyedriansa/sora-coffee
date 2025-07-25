@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useEffect } from "react"
 
 export default function AuthForm() {
   const [showPassword, setShowPassword] = useState(false)
@@ -19,12 +20,13 @@ export default function AuthForm() {
     message: string
   } | null>(null)
   const router = useRouter()
-
   const handleSubmit = async (e: React.FormEvent, type: string) => {
     e.preventDefault()
     setAlert(null)
 
     const form = e.target as HTMLFormElement
+
+    
 
     if (type === "login") {
       const email = (form.elements.namedItem("login-email") as HTMLInputElement).value
@@ -37,6 +39,12 @@ export default function AuthForm() {
       })
       const data = await res.json()
       if (res.ok) {
+        localStorage.setItem("token", data.token)
+        localStorage.setItem("user", JSON.stringify(data.user))
+        setAlert({
+          type: "success",
+          message: data.message || "Login Successful"
+        })
         router.push("/inventory")
       } else {
         setAlert({
@@ -121,19 +129,19 @@ export default function AuthForm() {
           </CardHeader>
           <CardContent>
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-3 bg-gray-700">
+              <TabsList className="grid w-full grid-cols-2 bg-gray-700">
                 <TabsTrigger
                   value="login"
                   className="text-gray-300 data-[state=active]:bg-amber-600 data-[state=active]:text-white"
                 >
                   Login
                 </TabsTrigger>
-                <TabsTrigger
+                {/* <TabsTrigger
                   value="register"
                   className="text-gray-300 data-[state=active]:bg-amber-600 data-[state=active]:text-white"
                 >
                   Register
-                </TabsTrigger>
+                </TabsTrigger> */}
                 <TabsTrigger
                   value="reset"
                   className="text-gray-300 data-[state=active]:bg-amber-600 data-[state=active]:text-white"
@@ -166,7 +174,9 @@ export default function AuthForm() {
                     <div className="relative">
                       <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                       <Input
+
                         id="login-password"
+                        autoComplete="off"
                         type={showPassword ? "text" : "password"}
                         placeholder="Enter your password"
                         className="pl-10 pr-10 bg-gray-700 border-gray-600 text-white placeholder:text-gray-400 focus:border-amber-500"
@@ -198,7 +208,7 @@ export default function AuthForm() {
                     </Button>
                   </div>
                   {alert && (
-                    <div className="text-red-500 text-sm text-center">{alert.message}</div>
+                    <div className="text-green-500 text-sm text-center">{alert.message}</div>
                   )}
                   <Button type="submit" className="w-full bg-amber-600 hover:bg-amber-700 text-white">
                     Sign In
