@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verify } from "jsonwebtoken";
 
+export const dynamic = 'force-dynamic';
 const JWT_SECRET = process.env.JWT_SECRET || "8c83eae5e44c1fa45054eb285885d4728cfe91b12a4632b318410d3042624fc2";
 
 export async function PATCH(request: NextRequest) {
