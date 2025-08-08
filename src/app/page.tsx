@@ -136,12 +136,12 @@ export default function AuthForm() {
                 >
                   Login
                 </TabsTrigger>
-                <TabsTrigger
+                {/* <TabsTrigger
                   value="register"
                   className="text-gray-300 data-[state=active]:bg-amber-600 data-[state=active]:text-white"
                 >
                   Register
-                </TabsTrigger>
+                </TabsTrigger> */}
                 <TabsTrigger
                   value="reset"
                   className="text-gray-300 data-[state=active]:bg-amber-600 data-[state=active]:text-white"
