@@ -174,7 +174,6 @@ export default function AuthForm() {
                     <div className="relative">
                       <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                       <Input
-
                         id="login-password"
                         autoComplete="off"
                         type={showPassword ? "text" : "password"}
