@@ -34,6 +34,7 @@
     "react-dom": "^19.0.0",
     "resend": "^4.5.2",
     "tailwind-merge": "^3.3.0",
+    "vercel": "^44.7.3",
     "zod": "^3.25.51"
   },
   "devDependencies": {
